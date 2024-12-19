@@ -386,6 +386,14 @@
     [
       "db70fe1b-d2b4-43f9-a78d-d9b71a224de5",
       "Root"
+    ],
+    [
+      "01600dc0-e265-4813-bd94-35573f2b8a15",
+      "Connectivity module"
+    ],
+    [
+      "5286cc6d-54d0-4cc6-8d48-e422f6a02d85",
+      "Power management"
     ]
   ],
   "text_variables": {}
