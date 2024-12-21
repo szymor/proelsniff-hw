@@ -1,16 +1,21 @@
 $fn = 50;
 
-thick = 1;
+thick = 1.5;
+lid_thick_up = 0.5;
+lid_thick_bottom = 1;
+lid_thick_w = 0.5;
 w = 50;
 h = 80;
 r = 5;
 
-rim_h = 29;
-pcb_elevation = 8;
+rim_h = 33;
+pcb_elevation = 10;
 pcb_thick = 1.8;
 
 head_d = 8;
 body_d = 4;
+
+tolerance = 0.1;
 
 // y coordinate of upper screwholes
 yy_up = h / 2 - 5 - 3 - 8 - 5;
@@ -41,6 +46,22 @@ module base_2d()
             }
             translate([0, -body_d*1.5, 0]) circle(d = head_d);
         }
+    }
+}
+
+module battery_placeholder_2d()
+{
+    bw = 50;
+    bh = 35;
+    bthick = 1.5;
+    bclen = 5;
+
+    translate([0, -10, 0]) difference()
+    {
+        square([bw + bthick, bh + bthick], true);
+        square([bw, bh], true);
+        square([bw + bthick, bh - bclen*2], true);
+        square([bw - bclen*2, bh + bthick], true);
     }
 }
 
@@ -104,15 +125,13 @@ module rim()
             arkhole(2);
          translate([0, -h/2 - r + thick/2, thick + pcb_elevation + pcb_thick - 3.5 + 0.9])
             usbhole(2);
-        /*
-        translate([-w/2 - r + thick/2, yy_up - 10, 0])
-            rimhole(9, 2);
-         translate([w/2 + r - thick/2, yy_up - 10, 0])
-            rimhole(9, 2);
-         translate([0, -h/2 - r + thick/2, 0])
-         rotate([0, 0, 90])
-            rimhole(15, 2);
-        */
+        // make room for a lid
+        translate([0, r, rim_h - (lid_thick_up + lid_thick_bottom)])
+        linear_extrude(lid_thick_bottom)
+            base_shape(w, h + 2*r, r - thick + lid_thick_w);
+        translate([0, h + r, rim_h - (lid_thick_up + lid_thick_bottom)])
+        linear_extrude(lid_thick_up + lid_thick_bottom + 0.5)
+            square([w + 2*(r - thick), h + 2*r], true);
     }
 }
 
@@ -144,71 +163,33 @@ module base()
         translate([xx_left, yy_up, 0]) screwhole();
         translate([xx_right, yy_up, 0]) screwhole();
     }
-}
 
-lid_screwstand_h = rim_h - thick*2 - pcb_elevation - pcb_thick;
-
-echo("Base screwstand height: ", pcb_elevation);
-echo("Lid screwstand height: ", lid_screwstand_h);
-
-module lid_screwstand()
-{
-    cylinder(lid_screwstand_h, d1 = 9, d2 = 7);
-}
-
-module lid_screwhole()
-{
-    translate([0, 0, -thick]) cylinder(lid_screwstand_h + thick - 1, d = 6);
-    cylinder(lid_screwstand_h + 0.5, d = 1.9);
-}
-
-module lid_ark_hole(width)
-{
-    square([width, 10], true);
+    // battery placeholder
+    linear_extrude(thick + 1) battery_placeholder_2d();
 }
 
 module lid()
 {
-    tolerance = 0.1;
-    difference()
+    rr = r - thick - tolerance;
+    translate([0, thick/2, 0]) difference()
     {
         union()
         {
-            linear_extrude(thick) difference()
-            {
-                rr = r - thick - tolerance;
-                base_shape(w, h, rr);
-                ww = 9;
-                translate([-w/2-rr +ww/2, yy_up - 10]) lid_ark_hole(ww);
-                translate([w/2+rr -ww/2, yy_up - 10]) lid_ark_hole(ww);
-            }
-            translate([xx_left, yy_down, thick]) lid_screwstand();
-            translate([xx_right, yy_down, thick]) lid_screwstand();
-            translate([xx_left, yy_up, thick]) lid_screwstand();
-            translate([xx_right, yy_up, thick]) lid_screwstand();
+            linear_extrude(lid_thick_bottom - 2*tolerance)
+                base_shape(w, h + thick + 2*tolerance, rr + lid_thick_w);
+             linear_extrude(lid_thick_bottom + lid_thick_up)
+                base_shape(w, h + thick + 2*tolerance, rr);
         }
-        translate([xx_left, yy_down, thick]) lid_screwhole();
-        translate([xx_right, yy_down, thick]) lid_screwhole();
-        translate([xx_left, yy_up, thick]) lid_screwhole();
-        translate([xx_right, yy_up, thick]) lid_screwhole();
-    }
-}
-
-module holder()
-{
-    difference()
-    {
-        translate([0, 0, rim_h]) linear_extrude(80 - rim_h) rim_2d();
-        translate([-w/2 - r - 1, 0, -0.5]) cube([w + 2*r + 2, h, 81]);
-        translate([0, 20, 60]) sphere(d = 120);
+        translate([0, 0, lid_thick_bottom - 2*tolerance])
+        linear_extrude(lid_thick_up+3*tolerance+0.01)
+            import (file = "logo.dxf");
     }
 }
 
 //lid();
 base();
 rim();
-//holder();
-//translate([0, 0, rim_h]) rotate([0, 180, 0]) lid();
+translate([0, 0, rim_h - (lid_thick_bottom + lid_thick_up)]) lid();
 
 
 echo("Horizontal screw distance: ", xx_right - xx_left);
