@@ -3,7 +3,7 @@ $fn = 50;
 thick = 1.5;
 lid_thick_up = 0.5;
 lid_thick_bottom = 1;
-lid_thick_w = 0.5;
+lid_thick_w = 0.75;
 w = 50;
 h = 80;
 r = 5;
@@ -170,19 +170,22 @@ module base()
 
 module lid()
 {
-    rr = r - thick - tolerance;
+    tol_w = 0.2;
+    tol_h = 0.25;
+    rr = r - thick - tol_w;
     translate([0, thick/2, 0]) difference()
     {
         union()
         {
-            linear_extrude(lid_thick_bottom - 2*tolerance)
-                base_shape(w, h + thick + 2*tolerance, rr + lid_thick_w);
+            linear_extrude(lid_thick_bottom - tol_h)
+                base_shape(w, h + thick + tol_h, rr + lid_thick_w);
              linear_extrude(lid_thick_bottom + lid_thick_up)
-                base_shape(w, h + thick + 2*tolerance, rr);
+                base_shape(w, h + thick + tol_h, rr);
         }
-        translate([0, 0, lid_thick_bottom - 2*tolerance])
-        linear_extrude(lid_thick_up+3*tolerance+0.01)
-            import (file = "logo.dxf");
+        translate([0, 0, lid_thick_bottom - tol_h])
+        linear_extrude(lid_thick_up+tol_h+0.01)
+            translate([0, 10, 0])
+            circle(15);
     }
 }
 
